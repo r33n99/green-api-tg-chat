@@ -1,0 +1,235 @@
+@use '../styles/tokens' as t;
+.login-page {
+  min-height: 100dvh;
+  background: #fafbfd;
+  display: flex;
+  flex-direction: column;
+}
+.login-header,
+.login-footer {
+  width: min(1160px, calc(100% - 80px));
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.login-header {
+  height: 100px;
+  a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: t.$muted;
+  }
+}
+.login-layout {
+  width: min(1060px, calc(100% - 80px));
+  margin: auto;
+  padding: 42px 0 65px;
+  display: grid;
+  grid-template-columns: 1fr 440px;
+  gap: 100px;
+  align-items: center;
+}
+.login-intro {
+  padding-bottom: 15px;
+  h1 {
+    font-size: clamp(42px, 4vw, 58px);
+    line-height: 1.13;
+    letter-spacing: -2px;
+    font-weight: 650;
+    margin: 23px 0;
+  }
+  > p {
+    max-width: 330px;
+    color: t.$muted;
+    font-size: 16px;
+    line-height: 1.75;
+  }
+}
+.intro-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.6px;
+  color: t.$blue;
+}
+.connection-diagram {
+  display: flex;
+  align-items: center;
+  margin: 42px 0 50px;
+  max-width: 320px;
+}
+.diagram-app,
+.diagram-max {
+  width: 66px;
+  height: 66px;
+  border: 1px solid #dde3ef;
+  background: white;
+  border-radius: 19px;
+  display: grid;
+  place-items: center;
+  color: t.$blue;
+  flex-shrink: 0;
+}
+.diagram-max {
+  background: t.$blue;
+  color: white;
+  font-size: 34px;
+  font-weight: 700;
+  border: none;
+}
+.diagram-api {
+  border: 1px solid #d9dfeb;
+  background: #eff2fa;
+  border-radius: 7px;
+  padding: 8px 10px;
+  font:
+    12px 'Consolas',
+    monospace;
+  color: #6d7891;
+}
+.diagram-line {
+  height: 1px;
+  background: #d9dfeb;
+  flex: 1;
+}
+.intro-note {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  max-width: 310px;
+  color: t.$muted;
+  line-height: 1.65;
+  font-size: 12px;
+  svg {
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+}
+.login-panel {
+  background: white;
+  border: 1px solid t.$line;
+  border-radius: 17px;
+  padding: 34px;
+  box-shadow: 0 12px 40px #20356206;
+  h2 {
+    font-size: 24px;
+    letter-spacing: -0.6px;
+    font-weight: 650;
+  }
+  form > label {
+    margin-top: 23px;
+  }
+}
+.form-description {
+  color: t.$muted;
+  font-size: 13px;
+  line-height: 1.65;
+  margin-top: 10px;
+  margin-bottom: 28px;
+}
+.password-field {
+  position: relative;
+  input {
+    padding-right: 45px;
+  }
+  button {
+    position: absolute;
+    right: 3px;
+    top: 3px;
+  }
+}
+.connect-button {
+  width: 100%;
+  margin-top: 28px;
+  justify-content: space-between;
+}
+.login-panel .error-notice {
+  margin-top: 20px;
+}
+.demo-entry {
+  border-top: 1px solid t.$line;
+  margin-top: 28px;
+  padding-top: 23px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 13px;
+  > span {
+    color: t.$muted;
+  }
+}
+.login-footer {
+  min-height: 66px;
+  color: #8c939f;
+  font-size: 12px;
+  a {
+    color: #7b8391;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+@media (max-width: 1000px) {
+  .login-layout {
+    gap: 40px;
+    grid-template-columns: 1fr 400px;
+  }
+  .login-panel {
+    padding: 28px;
+  }
+}
+@include t.mobile {
+  .login-header,
+  .login-footer {
+    width: calc(100% - 40px);
+  }
+  .login-header {
+    height: 80px;
+    a {
+      font-size: 0;
+      svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+  .login-layout {
+    width: calc(100% - 40px);
+    display: block;
+    padding: 20px 0 35px;
+  }
+  .login-intro {
+    h1 {
+      font-size: 36px;
+      letter-spacing: -1.3px;
+      margin: 15px 0;
+      br {
+        display: none;
+      }
+    }
+    > p {
+      max-width: 100%;
+      font-size: 14px;
+    }
+  }
+  .connection-diagram,
+  .intro-note {
+    display: none;
+  }
+  .login-panel {
+    margin-top: 25px;
+    padding: 24px;
+    h2 {
+      font-size: 22px;
+    }
+  }
+  .form-description {
+    margin-bottom: 20px;
+  }
+  .login-footer {
+    font-size: 10px;
+    gap: 12px;
+  }
+}

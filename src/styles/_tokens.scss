@@ -1,0 +1,10 @@
+$ink: #222735;
+$muted: #727987;
+$blue: #3155db;
+$line: #e6e9ef;
+$canvas: #f3f5f9;
+@mixin mobile {
+  @media (max-width: 700px) {
+    @content;
+  }
+}

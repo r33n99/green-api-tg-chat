@@ -1,0 +1,51 @@
+export interface Credentials {
+  idInstance: string;
+  apiTokenInstance: string;
+  apiUrl: string;
+}
+export type Delivery = 'sending' | 'queued' | 'sent' | 'delivered' | 'read' | 'failed';
+export interface Message {
+  id: string;
+  chatId: string;
+  text: string;
+  timestamp: number;
+  direction: 'in' | 'out';
+  status?: Delivery;
+}
+export interface Chat {
+  id: string;
+  title: string;
+  phone?: string;
+  unread: number;
+  messages: Message[];
+}
+export interface NotificationBody {
+  typeWebhook: string;
+  idMessage?: string;
+  timestamp?: number;
+  chatId?: string;
+  status?: string;
+  senderData?: {
+    chatId: string;
+    chatType?: string;
+    chatName?: string;
+    senderName?: string;
+    senderPhoneNumber?: number;
+  };
+  messageData?: {
+    typeMessage: string;
+    textMessageData?: { textMessage: string };
+    extendedTextMessageData?: { text: string };
+  };
+}
+export interface Notification {
+  receiptId: number;
+  body: NotificationBody;
+}
+export interface ChatApi {
+  connect(signal?: AbortSignal): Promise<string[]>;
+  resolvePhone(phone: string, signal?: AbortSignal): Promise<string>;
+  send(chatId: string, message: string, signal?: AbortSignal): Promise<string>;
+  receive(signal: AbortSignal): Promise<Notification | null>;
+  acknowledge(receiptId: number, signal: AbortSignal): Promise<void>;
+}
