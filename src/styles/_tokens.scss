@@ -1,8 +1,11 @@
-$ink: #222735;
-$muted: #727987;
-$blue: #2475b4;
-$line: #e6e9ef;
-$canvas: #f3f5f9;
+$ink: #edf1e8;
+$muted: #a0aa98;
+$green: #3b9702;
+$action: #55a62b;
+$link: #8bc75f;
+$line: #343c2d;
+$panel: #1e1e1e;
+$canvas: #171717;
 @mixin mobile {
   @media (max-width: 700px) {
     @content;

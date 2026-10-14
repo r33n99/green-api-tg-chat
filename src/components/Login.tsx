@@ -4,9 +4,8 @@ import {
   Eye,
   EyeOff,
   ExternalLink,
-  KeyRound,
+  LockKeyhole,
   LoaderCircle,
-  MessageCircle,
   Send,
 } from 'lucide-react';
 import { GreenApi, validateCredentials } from '../api/greenApi';
@@ -57,28 +56,11 @@ export function Login({
         </a>
       </header>
       <div className="login-layout">
-        <section className="login-intro" aria-labelledby="login-title">
-          <span className="intro-label">GREEN-API / Telegram</span>
-          <h1 id="login-title">Чат Telegram</h1>
-          <p>Подключите инстанс, чтобы отправлять и получать текстовые сообщения.</p>
-          <div className="connection-diagram" aria-hidden="true">
-            <span className="diagram-app">
-              <MessageCircle size={30} />
-            </span>
-            <span className="diagram-line" />
-            <span className="diagram-api">API</span>
-            <span className="diagram-line" />
-            <span className="diagram-telegram">
-              <Send size={30} />
-            </span>
-          </div>
-          <div className="intro-note">
-            <KeyRound size={18} />
-            <span>Ключи хранятся только в памяти вкладки и удаляются при выходе.</span>
-          </div>
-        </section>
         <section className="login-panel" aria-labelledby="form-title">
-          <h2 id="form-title">Подключение аккаунта</h2>
+          <div className="login-channel">
+            <Send size={17} /> Telegram
+          </div>
+          <h1 id="form-title">Подключение инстанса</h1>
           <p className="form-description">
             Данные инстанса Telegram из личного кабинета GREEN-API.
           </p>
@@ -148,15 +130,17 @@ export function Login({
             </button>
           </form>
           <div className="demo-entry">
-            <span>Хотите сначала посмотреть?</span>
             <button className="text-button" type="button" onClick={onDemo} disabled={busy}>
               Открыть демоверсию <ArrowRight size={15} />
             </button>
           </div>
         </section>
+        <p className="login-privacy">
+          <LockKeyhole size={14} /> Ключи хранятся только в памяти этой вкладки.
+        </p>
       </div>
       <footer className="login-footer">
-        <span>Текстовый чат Telegram</span>
+        <span>Telegram · GREEN-API</span>
         <a href="https://green-api.com/telegram/docs/" target="_blank" rel="noreferrer">
           Документация GREEN-API <ExternalLink size={13} />
         </a>
@@ -167,13 +151,8 @@ export function Login({
 export function Brand() {
   return (
     <div className="brand">
-      <span className="brand-mark" aria-hidden="true">
-        <Send size={23} />
-      </span>
-      <span>
-        Telegram<span className="brand-divider">/</span>
-        <span className="brand-chat">Чат</span>
-      </span>
+      <img className="brand-logo" src="./green-api.svg" alt="GREEN-API" />
+      <span className="brand-channel">Telegram</span>
     </div>
   );
 }

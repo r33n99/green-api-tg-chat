@@ -6,25 +6,25 @@
   min-height: 0;
 }
 .conversation-header {
-  min-height: 88px;
-  padding: 18px 30px;
+  min-height: 77px;
+  padding: 16px 30px;
   display: flex;
-  gap: 13px;
+  gap: 12px;
   align-items: center;
-  border-bottom: 1px solid t.$line;
-  background: white;
+  border-bottom: 1px solid #303c26;
+  background: #1d1f1b;
   h2 {
     font-weight: 600;
-    font-size: 16px;
+    font-size: 14px;
   }
   p {
-    color: #929aaa;
-    font-size: 12px;
+    color: #a0b68d;
+    font-size: 11px;
     margin-top: 6px;
   }
   .avatar {
-    width: 42px;
-    height: 42px;
+    width: 38px;
+    height: 38px;
   }
 }
 .mobile-back {
@@ -33,31 +33,31 @@
 .message-area {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 42px 30px;
+  padding: 25px 4vw 30px;
   min-height: 0;
   overscroll-behavior: contain;
 }
 .day-divider {
   text-align: center;
-  color: #959caa;
-  font-size: 11px;
-  margin: 6px 0 25px;
+  color: #9cae88;
+  font-size: 10px;
+  margin: 4px 0 30px;
 }
 .message-group {
   display: flow-root;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 .message {
   width: fit-content;
-  max-width: 78%;
-  min-width: 100px;
-  padding: 12px 14px 8px;
-  border-radius: 13px;
-  box-shadow: 0 1px 2px #23324a05;
+  max-width: min(75%, 600px);
+  min-width: 98px;
+  padding: 12px 15px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
   p {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
-    line-height: 1.55;
+    line-height: 1.65;
     font-size: 14px;
   }
   footer {
@@ -65,74 +65,75 @@
     gap: 5px;
     align-items: center;
     justify-content: flex-end;
-    margin-top: 5px;
+    margin-top: 6px;
     font-size: 10px;
   }
   &--in {
-    background: white;
-    border-bottom-left-radius: 4px;
+    background: #222b1a;
+    border-color: #34432a;
     footer {
-      color: #a1a7b2;
+      color: #a4b991;
     }
   }
   &--out {
     margin-left: auto;
-    background: #2475b4;
-    color: white;
-    border-bottom-right-radius: 4px;
+    background: #304f1c;
+    border-color: #45672f;
+    color: #eff6e9;
     footer {
-      color: #d3ddff;
+      color: #bed2a7;
     }
   }
   &--failed {
-    background: #fff0f1;
-    border: 1px solid #f3d2d7;
-    color: #8d2935;
+    background: #3b2720;
+    border-color: #73503b;
+    color: #f6cab4;
     footer {
-      color: #ad4d57;
+      color: #dcab8f;
     }
   }
 }
 .delivery {
   display: flex;
   &--read {
-    color: #c3e9ff;
+    color: #d5e8bd;
   }
 }
 .message .message-error {
   margin-top: 8px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
 }
 .conversation-empty {
   text-align: center;
-  color: t.$muted;
-  padding: 50px 0;
-  font-size: 13px;
+  color: #a2b68e;
+  padding: 60px 0;
+  font-size: 12px;
   span {
-    color: #939aaa;
+    color: #bac9ab;
   }
   p {
     margin-top: 15px;
   }
 }
 .compose-area {
-  padding: 16px 30px 18px;
-  background: #f3f5f9;
+  padding: 18px 30px 19px;
+  background: #181b16;
+  border-top: 1px solid #2b3922;
   .error-notice {
     margin-bottom: 12px;
   }
 }
 .composer {
-  background: white;
-  border: 1px solid #e0e5ef;
-  border-radius: 12px;
-  padding: 8px 9px 8px 6px;
+  background: #22271e;
+  border: 1px solid #405431;
+  border-radius: 6px;
+  padding: 7px 9px 7px 5px;
   display: flex;
   align-items: center;
   gap: 8px;
   &:focus-within {
-    border-color: #9dabde;
+    border-color: #72964f;
   }
   textarea {
     border: 0;
@@ -140,28 +141,29 @@
     background: transparent;
     padding: 10px 12px;
     max-height: 130px;
-    min-height: 52px;
+    min-height: 48px;
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.6;
     &:focus {
       box-shadow: none;
     }
   }
 }
 .send-button {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  background: t.$blue;
-  border: 0;
-  color: white;
+  width: 39px;
+  height: 39px;
+  border-radius: 4px;
+  background: t.$action;
+  border: 1px solid #72b044;
+  color: #13220b;
   display: grid;
   place-items: center;
   flex-shrink: 0;
   &:disabled {
-    background: #e9edf6;
-    color: #a4afc9;
-    opacity: 1;
+    background: #2f4022;
+    color: #899f77;
+    border-color: #405334;
+    opacity: 0.7;
   }
 }
 .compose-caption {
@@ -170,11 +172,11 @@
   gap: 10px;
   padding: 9px 2px 0;
   font-size: 10px;
-  color: #969dab;
+  color: #9aad87;
 }
 @include t.mobile {
   .conversation-header {
-    min-height: 77px;
+    min-height: 75px;
     padding: 13px 16px 13px 8px;
     gap: 9px;
   }
@@ -182,7 +184,7 @@
     display: inline-flex;
   }
   .message-area {
-    padding: 22px 16px;
+    padding: 23px 15px;
   }
   .message {
     max-width: 88%;

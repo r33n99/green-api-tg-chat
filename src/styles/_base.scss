@@ -5,10 +5,11 @@
 body {
   margin: 0;
   color: t.$ink;
-  background: #e9edf3;
+  background: t.$canvas;
   font-family: 'Segoe UI', Arial, sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   -webkit-font-smoothing: antialiased;
+  color-scheme: dark;
 }
 button,
 input,
@@ -26,14 +27,14 @@ button {
 }
 button:disabled {
   cursor: default;
-  opacity: 0.5;
+  opacity: 0.48;
 }
 button,
 a {
   touch-action: manipulation;
 }
 a {
-  color: t.$blue;
+  color: t.$link;
   text-decoration: none;
 }
 a:hover {
@@ -41,8 +42,8 @@ a:hover {
 }
 button:focus-visible,
 a:focus-visible {
-  outline: 3px solid #82b7df;
-  outline-offset: 3px;
+  outline: 2px solid #a1cf7f;
+  outline-offset: 4px;
 }
 h1,
 h2,
@@ -52,128 +53,118 @@ p {
 input,
 textarea {
   width: 100%;
-  border: 1px solid #d6dce6;
-  border-radius: 9px;
+  border: 1px solid #414a38;
+  border-radius: 5px;
   color: t.$ink;
-  background: white;
-  padding: 12px 14px;
+  background: #161815;
+  padding: 12px 13px;
   outline: none;
 }
 input:focus,
 textarea:focus {
-  border-color: t.$blue;
-  box-shadow: 0 0 0 3px #2475b412;
+  border-color: #6cae40;
+  box-shadow: 0 0 0 2px #5d9e2426;
 }
 input::placeholder,
 textarea::placeholder {
-  color: #939aa7;
+  color: #7d8973;
 }
 label {
   display: block;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
+  color: #c5cebd;
   margin-bottom: 8px;
 }
 small {
   color: t.$muted;
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: 11px;
+  line-height: 1.6;
   display: block;
   margin-top: 8px;
 }
 .primary-button {
-  background: t.$blue;
-  color: white;
-  border: 0;
-  border-radius: 9px;
-  padding: 13px 18px;
-  min-height: 46px;
+  background: t.$action;
+  color: #0d2105;
+  border: 1px solid #5faf32;
+  border-radius: 5px;
+  padding: 12px 17px;
+  min-height: 44px;
   display: inline-flex;
-  gap: 10px;
+  gap: 9px;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
+  font-weight: 650;
   transition: background 0.15s;
   &:hover:not(:disabled) {
-    background: #1b659d;
+    background: #69b53e;
   }
 }
 .icon-button {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   padding: 0;
-  border: 0;
-  border-radius: 9px;
+  border: 1px solid transparent;
+  border-radius: 5px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: t.$muted;
+  color: #aab69f;
   background: transparent;
   flex-shrink: 0;
   &:hover {
-    background: #eef1f7;
+    background: #2b3523;
     color: t.$ink;
   }
 }
 .text-button {
   border: 0;
   padding: 0;
-  color: t.$blue;
+  color: t.$link;
   background: none;
   display: inline-flex;
-  gap: 7px;
+  gap: 8px;
   align-items: center;
-  font-weight: 600;
+  font-weight: 500;
   &:hover {
     text-decoration: underline;
   }
 }
 .error-notice,
 .setup-notice {
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.65;
   padding: 12px 14px;
-  border-radius: 8px;
+  border-radius: 5px;
 }
 .error-notice {
-  color: #a32e39;
-  background: #fff0f1;
-  border: 1px solid #f6d9dd;
+  color: #f5b1b0;
+  background: #351f1c;
+  border: 1px solid #6a3830;
 }
 .setup-notice {
-  color: #7a5413;
-  background: #fff7e1;
-  border: 1px solid #f1e0b8;
+  color: #e5cd94;
+  background: #322d1b;
+  border: 1px solid #63532c;
 }
 .brand {
   display: flex;
   align-items: center;
-  gap: 11px;
-  font-size: 21px;
-  font-weight: 750;
-  letter-spacing: -0.5px;
+  gap: 23px;
   white-space: nowrap;
 }
-.brand-mark {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  color: white;
-  background: t.$blue;
-  display: grid;
-  place-items: center;
-  font-size: 25px;
-  font-weight: 750;
+.brand-logo {
+  display: block;
+  width: 167px;
+  height: 48px;
+  object-fit: contain;
 }
-.brand-divider {
-  margin: 0 11px;
-  color: #c5cad3;
-  font-weight: 300;
-}
-.brand-chat {
+.brand-channel {
+  border-left: 1px solid t.$line;
+  padding-left: 23px;
+  color: #bbc7b0;
+  font-size: 13px;
   font-weight: 400;
-  font-size: 18px;
-  letter-spacing: 0;
 }
 .spin {
   animation: spin 1s linear infinite;
