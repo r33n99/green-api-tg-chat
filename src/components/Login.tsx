@@ -7,6 +7,7 @@ import {
   KeyRound,
   LoaderCircle,
   MessageCircle,
+  Send,
 } from 'lucide-react';
 import { GreenApi, validateCredentials } from '../api/greenApi';
 import type { ChatApi } from '../types';
@@ -21,7 +22,7 @@ export function Login({
 }) {
   const [id, setId] = useState('');
   const [token, setToken] = useState('');
-  const [url, setUrl] = useState('https://3100.api.green-api.com');
+  const [url, setUrl] = useState('https://4100.api.green-api.com');
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -57,8 +58,8 @@ export function Login({
       </header>
       <div className="login-layout">
         <section className="login-intro" aria-labelledby="login-title">
-          <span className="intro-label">GREEN-API / MAX</span>
-          <h1 id="login-title">Чат MAX</h1>
+          <span className="intro-label">GREEN-API / Telegram</span>
+          <h1 id="login-title">Чат Telegram</h1>
           <p>Подключите инстанс, чтобы отправлять и получать текстовые сообщения.</p>
           <div className="connection-diagram" aria-hidden="true">
             <span className="diagram-app">
@@ -67,7 +68,9 @@ export function Login({
             <span className="diagram-line" />
             <span className="diagram-api">API</span>
             <span className="diagram-line" />
-            <span className="diagram-max">M</span>
+            <span className="diagram-telegram">
+              <Send size={30} />
+            </span>
           </div>
           <div className="intro-note">
             <KeyRound size={18} />
@@ -76,7 +79,9 @@ export function Login({
         </section>
         <section className="login-panel" aria-labelledby="form-title">
           <h2 id="form-title">Подключение аккаунта</h2>
-          <p className="form-description">Данные инстанса MAX из личного кабинета GREEN-API.</p>
+          <p className="form-description">
+            Данные инстанса Telegram из личного кабинета GREEN-API.
+          </p>
           <form onSubmit={submit}>
             <label htmlFor="instance">idInstance</label>
             <input
@@ -85,7 +90,7 @@ export function Login({
               onChange={(e) => setId(e.target.value)}
               inputMode="numeric"
               autoComplete="off"
-              placeholder="Например, 3100000001"
+              placeholder="Например, 4100000001"
               required
               disabled={busy}
             />
@@ -151,8 +156,8 @@ export function Login({
         </section>
       </div>
       <footer className="login-footer">
-        <span>Текстовый чат MAX</span>
-        <a href="https://green-api.com/v3/docs/" target="_blank" rel="noreferrer">
+        <span>Текстовый чат Telegram</span>
+        <a href="https://green-api.com/telegram/docs/" target="_blank" rel="noreferrer">
           Документация GREEN-API <ExternalLink size={13} />
         </a>
       </footer>
@@ -163,10 +168,10 @@ export function Brand() {
   return (
     <div className="brand">
       <span className="brand-mark" aria-hidden="true">
-        M
+        <Send size={23} />
       </span>
       <span>
-        MAX<span className="brand-divider">/</span>
+        Telegram<span className="brand-divider">/</span>
         <span className="brand-chat">Чат</span>
       </span>
     </div>

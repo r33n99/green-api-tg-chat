@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import type { ChatApi } from '../types';
 import { chatReducer } from '../state';
-import { normalizePhone } from '../api/greenApi';
+import { normalizeRecipient } from '../api/greenApi';
 import { demoChats } from '../api/demo';
 import { pollNotifications } from '../api/poll';
 
@@ -27,14 +27,14 @@ export function useChat(api: ChatApi, demo: boolean) {
     return () => controller.abort();
   }, [api]);
   const active = state.chats.find((c) => c.id === state.activeId);
-  const createChat = async (rawPhone: string) => {
-    const phone = normalizePhone(rawPhone);
-    const found = state.chats.find((c) => c.phone === phone);
-    const id = found?.id ?? (await api.resolvePhone(phone, sessionAbort.current.signal));
-    if (!sessionAbort.current.signal.aborted) dispatch({ type: 'addChat', id, phone });
+  const createChat = async (raw: string) => {
+    const recipient = normalizeRecipient(raw);
+    const found = state.chats.find((c) => c.recipient === recipient || c.phone === recipient);
+    const id = found?.id ?? (await api.resolveRecipient(recipient, sessionAbort.current.signal));
+    if (!sessionAbort.current.signal.aborted) dispatch({ type: 'addChat', id, recipient });
   };
   const send = async (text: string) => {
-    if (!active || sendingRef.current || !text.trim() || text.length > 4000) return false;
+    if (!active || sendingRef.current || !text.trim() || text.length > 4096) return false;
     const controller = sessionAbort.current;
     const chatId = active.id;
     const localId = crypto.randomUUID();
@@ -60,7 +60,7 @@ export function useChat(api: ChatApi, demo: boolean) {
       if (!controller.signal.aborted) {
         dispatch({ type: 'failed', id: localId, chatId });
         setSendError(
-          `${error instanceof Error ? error.message : 'Не удалось отправить сообщение.'} Текст сохранён в поле ввода. При сетевой ошибке проверьте MAX перед повтором.`,
+          `${error instanceof Error ? error.message : 'Не удалось отправить сообщение.'} Текст сохранён в поле ввода. При сетевой ошибке проверьте Telegram перед повтором.`,
         );
       }
       return false;

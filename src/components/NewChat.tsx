@@ -65,21 +65,24 @@ export function NewChat({
         </button>
       </header>
       <form onSubmit={submit}>
-        <label htmlFor="phone">Номер телефона</label>
+        <label htmlFor="phone">Номер телефона или @username</label>
         <input
           autoFocus
           id="phone"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
+          type="text"
+          autoComplete="off"
+          autoCapitalize="none"
+          spellCheck={false}
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          placeholder="+7 999 123-45-67"
+          placeholder="@username или +996 700 123 456"
           disabled={busy}
           required
           aria-describedby="phone-help"
         />
-        <small id="phone-help">Номер MAX с кодом страны +7 или +375.</small>
+        <small id="phone-help">
+          Международный номер с кодом страны или публичное имя Telegram.
+        </small>
         {error && (
           <p className="error-notice" role="alert">
             {error}

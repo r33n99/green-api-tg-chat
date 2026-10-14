@@ -41,7 +41,7 @@ a:hover {
 }
 button:focus-visible,
 a:focus-visible {
-  outline: 3px solid #88a3fc;
+  outline: 3px solid #82b7df;
   outline-offset: 3px;
 }
 h1,
@@ -62,7 +62,7 @@ textarea {
 input:focus,
 textarea:focus {
   border-color: t.$blue;
-  box-shadow: 0 0 0 3px #3155db12;
+  box-shadow: 0 0 0 3px #2475b412;
 }
 input::placeholder,
 textarea::placeholder {
@@ -95,7 +95,7 @@ small {
   font-weight: 600;
   transition: background 0.15s;
   &:hover:not(:disabled) {
-    background: #2444bd;
+    background: #1b659d;
   }
 }
 .icon-button {

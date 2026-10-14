@@ -40,7 +40,9 @@ function Workspace({ session, onLogout }: { session: Session; onLogout: () => vo
         <Brand />
         <div className="workspace-account">
           {session.demo ? (
-            <span className="demo-label">Деморежим · сообщения не отправляются в MAX</span>
+            <span className="demo-label" title="Тестовые сообщения. Аккаунт Telegram не подключён.">
+              Деморежим
+            </span>
           ) : (
             <span className={`connection-state ${chat.pollError ? 'connection-state--error' : ''}`}>
               <i />
@@ -139,7 +141,7 @@ function Workspace({ session, onLogout }: { session: Session; onLogout: () => vo
           <footer className="sidebar-footer">
             <span>GREEN-API</span>
             <a
-              href="https://green-api.com/v3/docs/"
+              href="https://green-api.com/telegram/docs/"
               target="_blank"
               rel="noreferrer"
               aria-label="Документация GREEN-API"
@@ -165,7 +167,7 @@ function Workspace({ session, onLogout }: { session: Session; onLogout: () => vo
               </div>
               <h2>Начните разговор</h2>
               <p>
-                Создайте чат по номеру телефона
+                Создайте чат по номеру или @username
                 <br />
                 или выберите переписку слева.
               </p>

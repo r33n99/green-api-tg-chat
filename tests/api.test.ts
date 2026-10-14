@@ -1,22 +1,29 @@
 import { describe, expect, it, vi } from 'vitest';
-import { GreenApi, normalizePhone, validateCredentials } from '../src/api/greenApi';
+import {
+  GreenApi,
+  normalizePhone,
+  normalizeRecipient,
+  validateCredentials,
+} from '../src/api/greenApi';
 import { pollNotifications } from '../src/api/poll';
 const credentials = {
-  idInstance: '3100000001',
+  idInstance: '4100000001',
   apiTokenInstance: 'test-token-12345678',
-  apiUrl: 'https://3100.api.green-api.com',
+  apiUrl: 'https://4100.api.green-api.com',
 };
 const response = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
-describe('MAX API contract', () => {
+describe('Telegram API contract', () => {
   it('normalizes supported numbers without treating a phone as chatId', () => {
     expect(normalizePhone('+7 (999) 123-45-67')).toBe('79991234567');
     expect(normalizePhone('+375 29 123-45-67')).toBe('375291234567');
-    for (const bad of ['89991234567', '+1 555 123', '79991234567oops'])
+    expect(normalizePhone('+996 700 123 456')).toBe('996700123456');
+    expect(normalizePhone('+1 415 555 2671')).toBe('14155552671');
+    for (const bad of ['0123456789', '+12', '79991234567oops', '7+9991234567', '1'.repeat(16)])
       expect(() => normalizePhone(bad)).toThrow();
   });
   it('keeps the token restricted to GREEN-API HTTPS origins', () => {
     for (const apiUrl of [
-      'http://3100.api.green-api.com',
+      'http://4100.api.green-api.com',
       'https://green-api.com.evil.example',
       'https://evil.example',
       'https://green-api.com/path',
@@ -24,12 +31,12 @@ describe('MAX API contract', () => {
     ])
       expect(() => validateCredentials({ ...credentials, apiUrl })).toThrow();
   });
-  it('resolves phone, sends to the returned MAX chat ID, polls, then acknowledges', async () => {
+  it('resolves phone, sends to the returned Telegram chat ID, polls, then acknowledges', async () => {
     const transport = vi
       .fn()
       .mockResolvedValueOnce(response({ stateInstance: 'authorized' }))
       .mockResolvedValueOnce(
-        response({ typeInstance: 'v3', incomingWebhook: 'yes', webhookUrl: '' }),
+        response({ typeInstance: 'telegram', incomingWebhook: 'yes', webhookUrl: '' }),
       )
       .mockResolvedValueOnce(response({ exist: true, chatId: '10000000' }))
       .mockResolvedValueOnce(response({ idMessage: 'message-id' }))
@@ -37,7 +44,7 @@ describe('MAX API contract', () => {
       .mockResolvedValueOnce(response({ result: true }));
     const api = new GreenApi(credentials, transport);
     expect(await api.connect()).toEqual([]);
-    const chatId = await api.resolvePhone('+79991234567');
+    const chatId = await api.resolveRecipient('+79991234567');
     expect(chatId).toBe('10000000');
     expect(await api.send(chatId, 'Привет 👋')).toBe('message-id');
     expect(JSON.parse(transport.mock.calls[2][1].body)).toEqual({ phoneNumber: 79991234567 });
@@ -69,26 +76,57 @@ describe('MAX API contract', () => {
         .mockResolvedValueOnce(response({ stateInstance: 'authorized' }))
         .mockResolvedValueOnce(response({ typeInstance: 'whatsapp' })),
     );
-    await expect(api.connect()).rejects.toThrow('не относится к MAX');
+    await expect(api.connect()).rejects.toThrow('не относится к Telegram');
   });
   it('reports disabled incoming notifications and webhook conflicts without changing settings', async () => {
     const fetcher = vi
       .fn()
       .mockResolvedValueOnce(response({ stateInstance: 'authorized' }))
       .mockResolvedValueOnce(
-        response({ incomingWebhook: 'no', webhookUrl: 'https://example.com/webhook' }),
+        response({
+          typeInstance: 'telegram',
+          incomingWebhook: 'no',
+          webhookUrl: 'https://example.com/webhook',
+        }),
       );
     expect(await new GreenApi(credentials, fetcher).connect()).toHaveLength(2);
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
-  it('rejects absent MAX accounts and blank messages', async () => {
+  it('rejects absent Telegram accounts and blank messages', async () => {
     const api = new GreenApi(
       credentials,
       vi.fn().mockResolvedValue(response({ exist: false, chatId: '' })),
     );
-    await expect(api.resolvePhone('79991234567')).rejects.toThrow('не найден');
-    await expect(api.send('100', '  ')).rejects.toThrow('4000');
-    await expect(api.send('100', 'a'.repeat(4001))).rejects.toThrow('4000');
+    await expect(api.resolveRecipient('79991234567')).rejects.toThrow('не найден');
+    await expect(api.send('100', '  ')).rejects.toThrow('4096');
+    await expect(api.send('100', 'a'.repeat(4097))).rejects.toThrow('4096');
+  });
+  it('normalizes a username and sends only username to checkAccount', async () => {
+    expect(normalizeRecipient(' @Some_User ')).toBe('@some_user');
+    expect(() => normalizeRecipient('@invalid-name')).toThrow();
+    const transport = vi.fn().mockResolvedValue(response({ exist: true, chatId: '223344' }));
+    expect(await new GreenApi(credentials, transport).resolveRecipient('@Some_User')).toBe(
+      '223344',
+    );
+    expect(JSON.parse(transport.mock.calls[0][1].body)).toEqual({ username: '@some_user' });
+  });
+  it('accepts the Telegram boundary of 4096 characters', async () => {
+    const transport = vi.fn().mockResolvedValue(response({ idMessage: 'limit-message' }));
+    await expect(new GreenApi(credentials, transport).send('100', 'a'.repeat(4096))).resolves.toBe(
+      'limit-message',
+    );
+    expect(JSON.parse(transport.mock.calls[0][1].body).message).toHaveLength(4096);
+  });
+  it('rejects MAX and missing messenger types', async () => {
+    for (const typeInstance of ['v3', 'max', undefined]) {
+      const transport = vi
+        .fn()
+        .mockResolvedValueOnce(response({ stateInstance: 'authorized' }))
+        .mockResolvedValueOnce(response({ typeInstance }));
+      await expect(new GreenApi(credentials, transport).connect()).rejects.toThrow(
+        'не относится к Telegram',
+      );
+    }
   });
   it('never echoes an error body containing secrets', async () => {
     const api = new GreenApi(
@@ -107,7 +145,7 @@ describe('MAX API contract', () => {
     const calls: string[] = [];
     const api = {
       connect: vi.fn(),
-      resolvePhone: vi.fn(),
+      resolveRecipient: vi.fn(),
       send: vi.fn(),
       receive: vi
         .fn()
@@ -132,7 +170,7 @@ describe('MAX API contract', () => {
     const event = { receiptId: 42, body: { typeWebhook: 'incomingMessageReceived' } };
     const api = {
       connect: vi.fn(),
-      resolvePhone: vi.fn(),
+      resolveRecipient: vi.fn(),
       send: vi.fn(),
       receive: vi.fn().mockResolvedValue(event),
       acknowledge: vi

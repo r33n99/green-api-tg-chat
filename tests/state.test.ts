@@ -3,6 +3,67 @@ import { chatReducer } from '../src/state';
 import type { ChatState } from '../src/state';
 import type { NotificationBody } from '../src/types';
 const empty: ChatState = { chats: [], activeId: null };
+it('creates a chat from username without manufacturing a phone number', () => {
+  const state = chatReducer(empty, { type: 'addChat', id: '100', recipient: '@some_user' });
+  expect(state.chats[0].title).toBe('@some_user');
+  expect(state.chats[0].phone).toBeUndefined();
+  expect(state.chats[0].recipient).toBe('@some_user');
+});
+it('handles Telegram noAccount without idMessage and preserves it after send returns', () => {
+  let state = chatReducer(empty, {
+    type: 'message',
+    message: {
+      id: 'local',
+      chatId: '100',
+      text: 'Hello',
+      timestamp: 100,
+      direction: 'out',
+      status: 'sending',
+    },
+  });
+  state = chatReducer(state, {
+    type: 'event',
+    body: { typeWebhook: 'outgoingMessageStatus', chatId: '100', status: 'noAccount' },
+  });
+  state = chatReducer(state, { type: 'sent', localId: 'local', id: 'server', chatId: '100' });
+  expect(state.chats[0].messages[0].status).toBe('failed');
+  expect(state.chats[0].messages[0].deliveryError).toContain('Получатель не найден');
+});
+it('explains an unresolvable Telegram recipient without affecting delivered messages', () => {
+  let state = chatReducer(empty, {
+    type: 'message',
+    message: {
+      id: 'delivered',
+      chatId: '100',
+      text: 'Earlier',
+      timestamp: 99,
+      direction: 'out',
+      status: 'delivered',
+    },
+  });
+  state = chatReducer(state, {
+    type: 'message',
+    message: {
+      id: 'pending',
+      chatId: '100',
+      text: 'Hello',
+      timestamp: 100,
+      direction: 'out',
+      status: 'queued',
+    },
+  });
+  state = chatReducer(state, {
+    type: 'event',
+    body: {
+      typeWebhook: 'outgoingMessageStatus',
+      chatId: '100',
+      status: 'failed',
+      description: 'chatId unresolvable on this session',
+    },
+  });
+  expect(state.chats[0].messages[0].status).toBe('delivered');
+  expect(state.chats[0].messages[1].deliveryError).toContain('@username');
+});
 const incoming: NotificationBody = {
   typeWebhook: 'incomingMessageReceived',
   idMessage: 'incoming-1',

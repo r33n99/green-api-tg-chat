@@ -11,11 +11,13 @@ export interface Message {
   timestamp: number;
   direction: 'in' | 'out';
   status?: Delivery;
+  deliveryError?: string;
 }
 export interface Chat {
   id: string;
   title: string;
   phone?: string;
+  recipient?: string;
   unread: number;
   messages: Message[];
 }
@@ -25,6 +27,7 @@ export interface NotificationBody {
   timestamp?: number;
   chatId?: string;
   status?: string;
+  description?: string;
   senderData?: {
     chatId: string;
     chatType?: string;
@@ -44,7 +47,7 @@ export interface Notification {
 }
 export interface ChatApi {
   connect(signal?: AbortSignal): Promise<string[]>;
-  resolvePhone(phone: string, signal?: AbortSignal): Promise<string>;
+  resolveRecipient(recipient: string, signal?: AbortSignal): Promise<string>;
   send(chatId: string, message: string, signal?: AbortSignal): Promise<string>;
   receive(signal: AbortSignal): Promise<Notification | null>;
   acknowledge(receiptId: number, signal: AbortSignal): Promise<void>;

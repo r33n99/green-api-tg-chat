@@ -5,7 +5,7 @@ export interface ChatState {
 }
 export type Action =
   | { type: 'select'; id: string | null }
-  | { type: 'addChat'; id: string; phone: string }
+  | { type: 'addChat'; id: string; recipient: string }
   | { type: 'message'; message: Message }
   | { type: 'sent'; localId: string; id: string; chatId: string }
   | { type: 'failed'; id: string; chatId: string }
@@ -20,17 +20,21 @@ export function chatReducer(state: ChatState, action: Action): ChatState {
     };
   if (action.type === 'addChat') {
     const found = state.chats.find((c) => c.id === action.id);
+    const phone = action.recipient.startsWith('@') ? undefined : action.recipient;
     return {
       activeId: action.id,
       chats: found
         ? state.chats.map((c) =>
-            c.id === action.id ? { ...c, unread: 0, phone: action.phone } : c,
+            c.id === action.id
+              ? { ...c, unread: 0, recipient: action.recipient, phone: phone ?? c.phone }
+              : c,
           )
         : [
             {
               id: action.id,
-              phone: action.phone,
-              title: `+${action.phone}`,
+              phone,
+              recipient: action.recipient,
+              title: phone ? `+${phone}` : action.recipient,
               unread: 0,
               messages: [],
             },
@@ -81,7 +85,10 @@ export function chatReducer(state: ChatState, action: Action): ChatState {
                     ? {
                         ...m,
                         id: action.id,
-                        status: m.status && statuses.indexOf(m.status) > 1 ? m.status : 'queued',
+                        status:
+                          m.status && (statuses.indexOf(m.status) > 1 || m.deliveryError)
+                            ? m.status
+                            : 'queued',
                       }
                     : action.type === 'failed' && m.id === action.id
                       ? { ...m, status: 'failed' }
@@ -92,21 +99,40 @@ export function chatReducer(state: ChatState, action: Action): ChatState {
       ),
     };
   const body = action.body;
-  if (body.typeWebhook === 'outgoingMessageStatus' && body.idMessage) {
-    const next = body.status as Delivery;
+  if (body.typeWebhook === 'outgoingMessageStatus') {
+    const next = (body.status === 'noAccount' ? 'failed' : body.status) as Delivery;
     if (![...statuses, 'failed'].includes(next)) return state;
     return {
       ...state,
-      chats: state.chats.map((c) => ({
-        ...c,
-        messages: c.messages.map((m) =>
-          m.id === body.idMessage &&
-          m.direction === 'out' &&
-          (next === 'failed' || statuses.indexOf(next) > statuses.indexOf(m.status ?? 'queued'))
-            ? { ...m, status: next }
-            : m,
-        ),
-      })),
+      chats: state.chats.map((c) => {
+        // Some Telegram failure notifications contain chatId without idMessage.
+        const pending =
+          !body.idMessage && c.id === body.chatId
+            ? [...c.messages]
+                .reverse()
+                .find(
+                  (m) =>
+                    m.direction === 'out' && ['sending', 'queued', 'sent'].includes(m.status ?? ''),
+                )
+            : undefined;
+        const targetId = body.idMessage ?? pending?.id;
+        const deliveryError =
+          body.status === 'noAccount'
+            ? 'Получатель не найден в Telegram или скрыт настройками приватности.'
+            : body.description === 'chatId unresolvable on this session'
+              ? 'Не удалось определить получателя. Создайте чат заново по номеру или @username.'
+              : 'Telegram отклонил сообщение.';
+        return {
+          ...c,
+          messages: c.messages.map((m) =>
+            m.id === targetId &&
+            m.direction === 'out' &&
+            (next === 'failed' || statuses.indexOf(next) > statuses.indexOf(m.status ?? 'queued'))
+              ? { ...m, status: next, deliveryError: next === 'failed' ? deliveryError : undefined }
+              : m,
+          ),
+        };
+      }),
     };
   }
   if (

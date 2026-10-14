@@ -67,7 +67,7 @@ export function Conversation({
   }, [chat.messages.length]);
   async function submit(e?: React.FormEvent) {
     e?.preventDefault();
-    if (sending || !draft.trim() || draft.length > 4000) return;
+    if (sending || !draft.trim() || draft.length > 4096) return;
     const text = draft;
     if (await onSend(text)) setDraft((current) => (current === text ? '' : current));
   }
@@ -81,7 +81,7 @@ export function Conversation({
         <Avatar title={chat.title} />
         <div>
           <h2>{chat.title}</h2>
-          <p>{chat.phone && !chat.title.startsWith('+') ? `+${chat.phone} · ` : ''}MAX</p>
+          <p>{chat.phone && !chat.title.startsWith('+') ? `+${chat.phone} · ` : ''}Telegram</p>
         </div>
       </header>
       <div
@@ -111,6 +111,11 @@ export function Conversation({
                 aria-label={message.direction === 'out' ? 'Вы' : chat.title}
               >
                 <p>{message.text}</p>
+                {message.deliveryError && (
+                  <p className="message-error" role="status">
+                    {message.deliveryError}
+                  </p>
+                )}
                 <footer>
                   <time dateTime={new Date(message.timestamp).toISOString()}>
                     {formatTime(message.timestamp)}
@@ -142,7 +147,7 @@ export function Conversation({
             }}
             placeholder="Написать сообщение…"
             rows={2}
-            maxLength={4000}
+            maxLength={4096}
             disabled={sending}
           />
           <button
@@ -156,7 +161,7 @@ export function Conversation({
         </form>
         <div className="compose-caption">
           <span>Enter — отправить · Shift + Enter — новая строка</span>
-          <span>{draft.length} / 4000</span>
+          <span>{draft.length} / 4096</span>
         </div>
       </div>
     </section>

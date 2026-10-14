@@ -10,11 +10,18 @@ export class ApiError extends Error {
   }
 }
 export function normalizePhone(raw: string): string {
-  if (/[^\d+\s()-]/.test(raw)) throw new Error('Введите номер телефона, без букв.');
+  if (!/^\+?[\d\s()-]+$/.test(raw.trim())) throw new Error('Введите международный номер телефона.');
   const phone = raw.replace(/\D/g, '');
-  if (!/^(7\d{10}|375\d{9})$/.test(phone))
-    throw new Error('Укажите номер с кодом +7 (11 цифр) или +375 (12 цифр).');
+  if (!/^[1-9]\d{6,14}$/.test(phone))
+    throw new Error('Укажите номер с кодом страны: от 7 до 15 цифр, например +996 700 123 456.');
   return phone;
+}
+export function normalizeRecipient(raw: string): string {
+  const recipient = raw.trim();
+  if (!recipient.startsWith('@')) return normalizePhone(recipient);
+  if (!/^@[a-zA-Z0-9_]{1,32}$/.test(recipient))
+    throw new Error('Проверьте @username: только латинские буквы, цифры и знак подчёркивания.');
+  return recipient.toLowerCase();
 }
 export function validateCredentials(values: Credentials): Credentials {
   const idInstance = values.idInstance.trim();
@@ -40,7 +47,7 @@ export function validateCredentials(values: Credentials): Credentials {
     !/^\/$/.test(url.pathname)
   ) {
     throw new Error(
-      'apiUrl должен быть HTTPS-адресом GREEN-API, например https://3100.api.green-api.com.',
+      'apiUrl должен быть HTTPS-адресом GREEN-API, например https://4100.api.green-api.com.',
     );
   }
   return { idInstance, apiTokenInstance, apiUrl: url.origin };
@@ -84,7 +91,7 @@ export class GreenApi implements ChatApi {
         401: 'Неверный idInstance или apiTokenInstance.',
         403: 'Нет доступа к инстансу. Проверьте ключ и тариф.',
         429: 'Слишком много запросов. Подождите немного.',
-        469: 'MAX временно ограничил поиск номеров. Повторите позже.',
+        469: 'Telegram временно ограничил поиск номеров. Повторите позже.',
       };
       // Do not expose remote response bodies: they may contain credentials or request URLs.
       throw new ApiError(
@@ -102,15 +109,15 @@ export class GreenApi implements ChatApi {
     const state = await this.request<{ stateInstance: string }>('getStateInstance', { signal });
     if (state.stateInstance !== 'authorized')
       throw new ApiError(
-        'Инстанс не авторизован. Подключите MAX в личном кабинете GREEN-API и повторите вход.',
+        'Инстанс не авторизован. Подключите Telegram в личном кабинете GREEN-API и повторите вход.',
       );
     const settings = await this.request<{
       typeInstance?: string;
       incomingWebhook?: string;
       webhookUrl?: string;
     }>('getSettings', { signal });
-    if (settings.typeInstance && !['v3', 'max'].includes(settings.typeInstance))
-      throw new ApiError('Этот инстанс не относится к MAX. Используйте инстанс MAX.');
+    if (settings.typeInstance !== 'telegram')
+      throw new ApiError('Этот инстанс не относится к Telegram. Используйте инстанс Telegram.');
     const notices: string[] = [];
     if (settings.incomingWebhook !== 'yes')
       notices.push(
@@ -122,31 +129,40 @@ export class GreenApi implements ChatApi {
       );
     return notices;
   }
-  async resolvePhone(phone: string, signal?: AbortSignal): Promise<string> {
+  async resolveRecipient(raw: string, signal?: AbortSignal): Promise<string> {
+    const recipient = normalizeRecipient(raw);
     const result = await this.request<{ exist?: boolean; chatId?: string; status?: boolean }>(
       'checkAccount',
-      { verb: 'POST', body: { phoneNumber: Number(normalizePhone(phone)) }, signal },
+      {
+        verb: 'POST',
+        body: recipient.startsWith('@')
+          ? { username: recipient }
+          : { phoneNumber: Number(recipient) },
+        signal,
+      },
     );
     if (result.status === false)
       throw new ApiError(
-        'MAX не смог проверить номер. Проверьте состояние инстанса или повторите позже.',
+        'Telegram не смог найти получателя. Проверьте состояние инстанса или повторите позже.',
       );
     if (!result.exist || !result.chatId)
       throw new ApiError(
-        'Аккаунт MAX не найден. Проверьте номер и настройки приватности получателя.',
+        'Аккаунт Telegram не найден. Проверьте номер, @username или настройки приватности получателя.',
       );
     return String(result.chatId);
   }
   async send(chatId: string, message: string, signal?: AbortSignal): Promise<string> {
-    if (!message.trim() || message.length > 4000)
-      throw new ApiError('Сообщение должно содержать от 1 до 4000 символов.');
+    if (!message.trim() || message.length > 4096)
+      throw new ApiError('Сообщение должно содержать от 1 до 4096 символов.');
     const result = await this.request<{ idMessage: string }>('sendMessage', {
       verb: 'POST',
       body: { chatId, message },
       signal,
     });
     if (!result.idMessage)
-      throw new ApiError('Сервер не подтвердил отправку. Проверьте MAX перед повторной отправкой.');
+      throw new ApiError(
+        'Сервер не подтвердил отправку. Проверьте Telegram перед повторной отправкой.',
+      );
     return result.idMessage;
   }
   receive(signal: AbortSignal) {

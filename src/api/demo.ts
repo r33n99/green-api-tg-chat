@@ -14,7 +14,7 @@ export function demoChats(): Chat[] {
           chatId: 'demo-alex',
           direction: 'in',
           text: 'Привет! Получилось подключить чат?',
-          timestamp: now - 240000,
+          timestamp: now - 240960,
         },
         {
           id: 'd2',
@@ -57,7 +57,7 @@ export class DemoApi implements ChatApi {
   async connect() {
     return [];
   }
-  async resolvePhone(phone: string) {
+  async resolveRecipient(phone: string) {
     return `demo-${phone}`;
   }
   async send(chatId: string, _message: string) {
