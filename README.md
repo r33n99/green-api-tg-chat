@@ -23,6 +23,10 @@ npm run preview  # просмотр production-сборки
 
 Готовую папку `dist/` можно разместить на любом статическом хостинге. Приложение не использует серверные секреты или переменные окружения.
 
+## Vercel
+
+Проект `green-api-telegram-chat` в аккаунте `r33n99s-projects` подключён к репозиторию [r33n99/green-api-max-chat](https://github.com/r33n99/green-api-max-chat). Изменения в `main` автоматически публикуются в production. Настройки Vite, установки и сборки находятся в `vercel.json`. Ключи GREEN-API вводятся в интерфейсе приложения; добавлять их в Vercel Environment Variables не требуется.
+
 ## Подключение Telegram
 
 1. В [личном кабинете GREEN-API](https://console.green-api.com/) создайте именно инстанс **Telegram** и авторизуйте свой аккаунт Telegram. Приложение ожидает `stateInstance: authorized`.
