@@ -71,7 +71,9 @@ export class GreenApi implements ChatApi {
     const signal = options.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
     let response: Response;
     try {
-      response = await this.transport(url, {
+      // Native browser fetch requires a Window receiver or an unbound call.
+      const transport = this.transport;
+      response = await transport(url, {
         method: options.verb ?? 'GET',
         signal,
         cache: 'no-store',

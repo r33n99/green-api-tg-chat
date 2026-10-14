@@ -13,6 +13,17 @@ const credentials = {
 };
 const response = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
 describe('Telegram API contract', () => {
+  it('calls fetch without binding it to the API instance, as required by browsers', async () => {
+    const transport = vi.fn(function (this: unknown) {
+      if (this !== undefined) throw new TypeError('Illegal invocation');
+      return Promise.resolve(response({ stateInstance: 'authorized' }));
+    });
+    const api = new GreenApi(credentials, transport);
+    await expect(api.request('getStateInstance')).resolves.toEqual({
+      stateInstance: 'authorized',
+    });
+    expect(transport).toHaveBeenCalledOnce();
+  });
   it('normalizes supported numbers without treating a phone as chatId', () => {
     expect(normalizePhone('+7 (999) 123-45-67')).toBe('79991234567');
     expect(normalizePhone('+375 29 123-45-67')).toBe('375291234567');
