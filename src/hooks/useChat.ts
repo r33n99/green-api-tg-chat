@@ -5,6 +5,7 @@ import { historyKey, readHistory, saveHistory } from '../storage';
 import { normalizeRecipient } from '../api/greenApi';
 import { demoChats } from '../api/demo';
 import { pollNotifications } from '../api/poll';
+import { pollDeliveryStatuses } from '../api/statuses';
 
 export function useChat(api: ChatApi, demo: boolean, restored = false) {
   const key = historyKey(api.credentials);
@@ -45,6 +46,7 @@ export function useChat(api: ChatApi, demo: boolean, restored = false) {
     persist(currentState.current);
   }, [persist]);
   const [pollError, setPollError] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const sendingRef = useRef(false);
@@ -79,6 +81,18 @@ export function useChat(api: ChatApi, demo: boolean, restored = false) {
     })();
     return () => controller.abort();
   }, [api, demo, restored, dispatch, attempt]);
+  useEffect(() => {
+    if (!ready) return;
+    const controller = new AbortController();
+    void pollDeliveryStatuses(
+      api,
+      controller.signal,
+      () => currentState.current.chats,
+      (body) => dispatch({ type: 'event', body }),
+      setStatusError,
+    );
+    return () => controller.abort();
+  }, [api, ready, dispatch]);
   const active = state.chats.find((c) => c.id === state.activeId);
   const createChat = async (raw: string) => {
     const recipient = normalizeRecipient(raw);
@@ -139,6 +153,7 @@ export function useChat(api: ChatApi, demo: boolean, restored = false) {
     notices,
     storageError,
     pollError,
+    statusError,
     sendError,
     draft: active ? (state.drafts?.[active.id] ?? '') : '',
     setDraft: (chatId: string, text: string) => dispatch({ type: 'draft', chatId, text }),

@@ -110,6 +110,7 @@ export function chatReducer(state: ChatState, action: Action): ChatState {
     return {
       ...state,
       chats: state.chats.map((c) => {
+        if (body.chatId && c.id !== body.chatId) return c;
         // Some Telegram failure notifications contain chatId without idMessage.
         const pending =
           !body.idMessage && c.id === body.chatId

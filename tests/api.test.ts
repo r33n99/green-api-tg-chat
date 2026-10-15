@@ -13,6 +13,32 @@ const credentials = {
 };
 const response = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
 describe('Telegram API contract', () => {
+  it('extracts delivery statuses from the journal without importing message texts', async () => {
+    const transport = vi.fn().mockResolvedValue(
+      response([
+        {
+          type: 'outgoing',
+          idMessage: 'm1',
+          chatId: '100',
+          statusMessage: 'delivered',
+          textMessage: 'Private',
+        },
+        { type: 'outgoing', idMessage: 'm2', chatId: '100', statusMessage: 'unknown' },
+        { type: 'incoming', idMessage: 'm3', chatId: '100', statusMessage: 'read' },
+      ]),
+    );
+    const result = await new GreenApi(credentials, transport).deliveryStatuses(
+      60,
+      new AbortController().signal,
+    );
+    expect(result).toEqual([
+      { typeWebhook: 'outgoingMessageStatus', idMessage: 'm1', chatId: '100', status: 'delivered' },
+    ]);
+    expect(transport.mock.calls[0][0]).toContain(
+      '/lastOutgoingMessages/test-token-12345678?minutes=60',
+    );
+    expect(transport.mock.calls[0][1].method).toBe('GET');
+  });
   it('calls fetch without binding it to the API instance, as required by browsers', async () => {
     const transport = vi.fn(function (this: unknown) {
       if (this !== undefined) throw new TypeError('Illegal invocation');
@@ -47,7 +73,14 @@ describe('Telegram API contract', () => {
       .fn()
       .mockResolvedValueOnce(response({ stateInstance: 'authorized' }))
       .mockResolvedValueOnce(
-        response({ typeInstance: 'telegram', incomingWebhook: 'yes', webhookUrl: '' }),
+        response({
+          typeInstance: 'telegram',
+          incomingWebhook: 'yes',
+          webhookUrl: '',
+          outgoingWebhook: 'yes',
+          outgoingAPIMessageWebhook: 'yes',
+          outgoingMessageWebhook: 'yes',
+        }),
       )
       .mockResolvedValueOnce(response({ exist: true, chatId: '10000000' }))
       .mockResolvedValueOnce(response({ idMessage: 'message-id' }))
@@ -100,7 +133,7 @@ describe('Telegram API contract', () => {
           webhookUrl: 'https://example.com/webhook',
         }),
       );
-    expect(await new GreenApi(credentials, fetcher).connect()).toHaveLength(2);
+    expect(await new GreenApi(credentials, fetcher).connect()).toHaveLength(3);
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
   it('rejects absent Telegram accounts and blank messages', async () => {

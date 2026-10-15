@@ -106,6 +106,29 @@ it('does not downgrade delivery on out-of-order status notifications', () => {
     });
   expect(state.chats[0].messages[0].status).toBe('read');
 });
+it('does not apply a journal status to a different chat with the same message ID', () => {
+  const state = chatReducer(empty, {
+    type: 'message',
+    message: {
+      id: 'm1',
+      chatId: '100',
+      text: 'Hello',
+      timestamp: 100,
+      direction: 'out',
+      status: 'queued',
+    },
+  });
+  const next = chatReducer(state, {
+    type: 'event',
+    body: {
+      typeWebhook: 'outgoingMessageStatus',
+      chatId: 'other',
+      idMessage: 'm1',
+      status: 'read',
+    },
+  });
+  expect(next.chats[0].messages[0].status).toBe('queued');
+});
 it('handles text with a URL and ignores unsupported media', () => {
   const state = chatReducer(empty, {
     type: 'event',

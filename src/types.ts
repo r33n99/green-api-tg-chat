@@ -50,6 +50,7 @@ export interface ChatApi {
   connect(signal?: AbortSignal): Promise<string[]>;
   resolveRecipient(recipient: string, signal?: AbortSignal): Promise<string>;
   send(chatId: string, message: string, signal?: AbortSignal): Promise<string>;
+  deliveryStatuses?(minutes: number, signal: AbortSignal): Promise<NotificationBody[]>;
   receive(signal: AbortSignal): Promise<Notification | null>;
   acknowledge(receiptId: number, signal: AbortSignal): Promise<void>;
 }

@@ -32,3 +32,13 @@
 - https://green-api.com/telegram/docs/api/receiving/technology-http-api/ReceiveNotification/
 - https://green-api.com/telegram/docs/api/receiving/technology-http-api/DeleteNotification/
 - https://green-api.com/telegram/docs/api/receiving/notifications-format/incoming-message/TextMessage/
+
+## Проверка статусов 16 октября 2026
+
+У инстанса были выключены incomingWebhook, outgoingWebhook, outgoingAPIMessageWebhook и outgoingMessageWebhook. В журнале lastOutgoingMessages два исходящих сообщения имели statusMessage: delivered. После включения уведомлений пользователем приложение получило актуальные настройки без предупреждений. Добавленная сверка с журналом обновила ранее отправленное сообщение в открытом чате с ожидания на «Доставлено». Реальные сообщения повторно не отправлялись.
+
+Всего 33 теста: дополнительно проверены извлечение статусов без импорта текста, обновление по совпадающим chatId/idMessage, отсутствие запросов без незавершённых сообщений и защита от совпадения ID в разных чатах. Сборка проходит.
+
+Источники:
+- https://green-api.com/telegram/docs/api/receiving/notifications-format/statuses/OutgoingMessageStatus/
+- https://green-api.com/telegram/docs/api/journals/LastOutgoingMessages/

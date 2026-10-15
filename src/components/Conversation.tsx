@@ -6,7 +6,7 @@ export const formatTime = (timestamp: number) =>
   new Intl.DateTimeFormat('ru', { hour: '2-digit', minute: '2-digit' }).format(timestamp);
 const statusText: Record<Delivery, string> = {
   sending: 'Отправляется',
-  queued: 'В очереди GREEN-API',
+  queued: 'Принято GREEN-API. Ожидаем подтверждение доставки.',
   sent: 'Отправлено',
   delivered: 'Доставлено',
   read: 'Прочитано',

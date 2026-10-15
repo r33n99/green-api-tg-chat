@@ -1,4 +1,4 @@
-import type { ChatApi, Credentials, Notification } from '../types';
+import type { ChatApi, Credentials, Notification, NotificationBody } from '../types';
 
 export class ApiError extends Error {
   constructor(
@@ -116,6 +116,9 @@ export class GreenApi implements ChatApi {
     const settings = await this.request<{
       typeInstance?: string;
       incomingWebhook?: string;
+      outgoingWebhook?: string;
+      outgoingAPIMessageWebhook?: string;
+      outgoingMessageWebhook?: string;
       webhookUrl?: string;
     }>('getSettings', { signal });
     if (settings.typeInstance !== 'telegram')
@@ -124,6 +127,16 @@ export class GreenApi implements ChatApi {
     if (settings.incomingWebhook !== 'yes')
       notices.push(
         'В GREEN-API включите «Получать уведомления о входящих сообщениях» (incomingWebhook: yes), чтобы видеть ответы.',
+      );
+    if (
+      [
+        settings.outgoingWebhook,
+        settings.outgoingAPIMessageWebhook,
+        settings.outgoingMessageWebhook,
+      ].some((value) => value !== 'yes')
+    )
+      notices.push(
+        'В GREEN-API отключены уведомления о статусах исходящих сообщений. Статусы сверяются с журналом с задержкой до 30 секунд.',
       );
     if (settings.webhookUrl)
       notices.push(
@@ -166,6 +179,31 @@ export class GreenApi implements ChatApi {
         'Сервер не подтвердил отправку. Проверьте Telegram перед повторной отправкой.',
       );
     return result.idMessage;
+  }
+  async deliveryStatuses(minutes: number, signal: AbortSignal): Promise<NotificationBody[]> {
+    const rows = await this.request<unknown>('lastOutgoingMessages', {
+      suffix: `?minutes=${Math.max(1, Math.min(1440, Math.ceil(minutes)))}`,
+      signal,
+    });
+    if (!Array.isArray(rows)) throw new ApiError('GREEN-API вернул некорректный журнал отправки.');
+    return rows.flatMap((row) => {
+      if (
+        !row ||
+        row.type !== 'outgoing' ||
+        typeof row.idMessage !== 'string' ||
+        typeof row.chatId !== 'string' ||
+        !['sent', 'delivered', 'read', 'failed', 'noAccount'].includes(row.statusMessage)
+      )
+        return [];
+      return [
+        {
+          typeWebhook: 'outgoingMessageStatus',
+          chatId: row.chatId,
+          idMessage: row.idMessage,
+          status: row.statusMessage,
+        },
+      ];
+    });
   }
   receive(signal: AbortSignal) {
     return this.request<Notification | null>('receiveNotification', {

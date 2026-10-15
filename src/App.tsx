@@ -105,7 +105,11 @@ function Workspace({
           </button>
         </div>
       </header>
-      {(notices.length > 0 || chat.pollError || chat.storageError || sessionStorageError) && (
+      {(notices.length > 0 ||
+        chat.pollError ||
+        chat.statusError ||
+        chat.storageError ||
+        sessionStorageError) && (
         <div className="workspace-notices">
           {notices.map((notice) => (
             <p key={notice} className="setup-notice" role="status">
@@ -121,6 +125,11 @@ function Workspace({
           {chat.pollError && (
             <p className="error-notice" role="alert">
               {chat.pollError}
+            </p>
+          )}
+          {chat.statusError && (
+            <p className="error-notice" role="alert">
+              {chat.statusError}
             </p>
           )}
           {!chat.ready && !chat.checking && (
