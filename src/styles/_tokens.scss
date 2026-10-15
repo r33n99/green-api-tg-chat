@@ -6,6 +6,8 @@ $link: #8bc75f;
 $line: #343c2d;
 $panel: #1e1e1e;
 $canvas: #171717;
+$gutter: 24px;
+$mobile-gutter: 16px;
 @mixin mobile {
   @media (max-width: 700px) {
     @content;

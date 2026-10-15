@@ -1,21 +1,54 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ExternalLink, LogOut, MessageSquare, Plus, Search } from 'lucide-react';
 import { Login, Brand } from './components/Login';
 import { Conversation, Avatar, formatTime } from './components/Conversation';
 import { NewChat } from './components/NewChat';
 import { useChat } from './hooks/useChat';
 import { DemoApi } from './api/demo';
+import { GreenApi } from './api/greenApi';
+import { clearSession, historyKey, readSession, saveSession } from './storage';
 import type { ChatApi } from './types';
 import './styles/App.scss';
 interface Session {
   api: ChatApi;
   demo: boolean;
   notices: string[];
+  restored?: boolean;
 }
 export default function App() {
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<Session | null>(() => {
+    const saved = readSession();
+    return saved
+      ? {
+          api: saved.demo ? new DemoApi() : new GreenApi(saved.credentials),
+          demo: saved.demo,
+          notices: saved.notices,
+          restored: true,
+        }
+      : null;
+  });
+  const [sessionStorageError, setSessionStorageError] = useState(false);
+  useEffect(() => {
+    if (!session) return;
+    const saved = session.demo
+      ? saveSession({ demo: true, notices: session.notices })
+      : session.api.credentials &&
+        saveSession({
+          demo: false,
+          credentials: session.api.credentials,
+          notices: session.notices,
+        });
+    setSessionStorageError(!saved);
+  }, [session]);
   return session ? (
-    <Workspace session={session} onLogout={() => setSession(null)} />
+    <Workspace
+      session={session}
+      sessionStorageError={sessionStorageError}
+      onLogout={() => {
+        clearSession(historyKey(session.api.credentials));
+        setSession(null);
+      }}
+    />
   ) : (
     <Login
       onConnect={(api, notices) => setSession({ api, notices, demo: false })}
@@ -23,8 +56,17 @@ export default function App() {
     />
   );
 }
-function Workspace({ session, onLogout }: { session: Session; onLogout: () => void }) {
-  const chat = useChat(session.api, session.demo);
+function Workspace({
+  session,
+  onLogout,
+  sessionStorageError,
+}: {
+  session: Session;
+  onLogout: () => void;
+  sessionStorageError: boolean;
+}) {
+  const chat = useChat(session.api, session.demo, session.restored);
+  const notices = chat.notices ?? session.notices;
   const [search, setSearch] = useState('');
   const [newChat, setNewChat] = useState(false);
   const chats = useMemo(
@@ -46,7 +88,11 @@ function Workspace({ session, onLogout }: { session: Session; onLogout: () => vo
           ) : (
             <span className={`connection-state ${chat.pollError ? 'connection-state--error' : ''}`}>
               <i />
-              {chat.pollError ? 'Получение приостановлено' : 'Аккаунт подключён'}
+              {chat.checking
+                ? 'Подключаемся…'
+                : chat.pollError
+                  ? 'Получение приостановлено'
+                  : 'Аккаунт подключён'}
             </span>
           )}
           <button
@@ -59,17 +105,28 @@ function Workspace({ session, onLogout }: { session: Session; onLogout: () => vo
           </button>
         </div>
       </header>
-      {(session.notices.length > 0 || chat.pollError) && (
+      {(notices.length > 0 || chat.pollError || chat.storageError || sessionStorageError) && (
         <div className="workspace-notices">
-          {session.notices.map((notice) => (
+          {notices.map((notice) => (
             <p key={notice} className="setup-notice" role="status">
               {notice}
             </p>
           ))}
+          {(chat.storageError || sessionStorageError) && (
+            <p className="error-notice" role="alert">
+              {chat.storageError ??
+                'Не удалось сохранить подключение. Проверьте разрешения хранилища браузера.'}
+            </p>
+          )}
           {chat.pollError && (
             <p className="error-notice" role="alert">
               {chat.pollError}
             </p>
+          )}
+          {!chat.ready && !chat.checking && (
+            <button className="text-button" onClick={chat.reconnect}>
+              Повторить подключение
+            </button>
           )}
         </div>
       )}
@@ -155,7 +212,9 @@ function Workspace({ session, onLogout }: { session: Session; onLogout: () => vo
             <Conversation
               key={chat.active.id}
               chat={chat.active}
-              sending={chat.sending}
+              sending={chat.sending || chat.checking || !chat.ready}
+              draft={chat.draft}
+              onDraftChange={(text) => chat.setDraft(chat.active!.id, text)}
               error={chat.sendError}
               onSend={chat.send}
               onBack={() => chat.select(null)}

@@ -63,7 +63,8 @@
   button {
     position: absolute;
     right: 4px;
-    top: 4px;
+    top: 50%;
+    transform: translateY(-50%);
   }
 }
 .connect-button {
@@ -130,7 +131,7 @@
     padding: 32px 0;
   }
   .login-panel {
-    padding: 25px 23px;
+    padding: 24px 20px;
     h1 {
       font-size: 23px;
     }
@@ -138,9 +139,19 @@
   .login-footer {
     padding: 20px 18px;
     font-size: 10px;
+    flex-wrap: wrap;
   }
   .login-privacy {
     font-size: 10px;
     gap: 6px;
+  }
+}
+@media (max-width: 360px) {
+  .login-header {
+    padding-inline: 16px;
+    gap: 12px;
+  }
+  .login-header .brand-logo {
+    width: 122px;
   }
 }

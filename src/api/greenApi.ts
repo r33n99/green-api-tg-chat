@@ -54,7 +54,7 @@ export function validateCredentials(values: Credentials): Credentials {
 }
 
 export class GreenApi implements ChatApi {
-  private credentials: Credentials;
+  readonly credentials: Credentials;
   constructor(
     credentials: Credentials,
     private transport: typeof fetch = fetch,

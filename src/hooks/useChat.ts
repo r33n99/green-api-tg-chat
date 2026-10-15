@@ -1,15 +1,49 @@
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ChatApi } from '../types';
-import { chatReducer } from '../state';
+import { chatReducer, type Action } from '../state';
+import { historyKey, readHistory, saveHistory } from '../storage';
 import { normalizeRecipient } from '../api/greenApi';
 import { demoChats } from '../api/demo';
 import { pollNotifications } from '../api/poll';
 
-export function useChat(api: ChatApi, demo: boolean) {
-  const [state, dispatch] = useReducer(chatReducer, {
-    chats: demo ? demoChats() : [],
-    activeId: demo ? 'demo-alex' : null,
-  });
+export function useChat(api: ChatApi, demo: boolean, restored = false) {
+  const key = historyKey(api.credentials);
+  const [state, setState] = useState(
+    () =>
+      readHistory(key) ?? {
+        chats: demo ? demoChats() : [],
+        activeId: demo ? 'demo-alex' : null,
+        drafts: {},
+      },
+  );
+  const currentState = useRef(state);
+  const [storageError, setStorageError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(restored && !demo);
+  const [ready, setReady] = useState(!restored || demo);
+  const [attempt, setAttempt] = useState(0);
+  const [notices, setNotices] = useState<string[] | null>(null);
+  const persist = useCallback(
+    (next: typeof state) => {
+      setStorageError(
+        saveHistory(key, next)
+          ? null
+          : 'Браузер не позволяет сохранить данные вкладки. Не перезагружайте страницу до восстановления хранилища.',
+      );
+    },
+    [key],
+  );
+  const dispatch = useCallback(
+    (action: Action) => {
+      const next = chatReducer(currentState.current, action);
+      currentState.current = next;
+      persist(next);
+      setState(next);
+    },
+    [persist],
+  );
+  useEffect(() => {
+    persist(currentState.current);
+  }, [persist]);
   const [pollError, setPollError] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
@@ -18,14 +52,33 @@ export function useChat(api: ChatApi, demo: boolean) {
   useEffect(() => {
     const controller = new AbortController();
     sessionAbort.current = controller;
-    void pollNotifications(
-      api,
-      controller.signal,
-      (body) => dispatch({ type: 'event', body }),
-      setPollError,
-    );
+    void (async () => {
+      try {
+        if (restored && !demo) {
+          const updated = await api.connect(controller.signal);
+          if (controller.signal.aborted) return;
+          setNotices(updated);
+        }
+        if (controller.signal.aborted) return;
+        setChecking(false);
+        setReady(true);
+        await pollNotifications(
+          api,
+          controller.signal,
+          (body) => dispatch({ type: 'event', body }),
+          setPollError,
+        );
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setChecking(false);
+          setPollError(
+            error instanceof Error ? error.message : 'Не удалось восстановить подключение.',
+          );
+        }
+      }
+    })();
     return () => controller.abort();
-  }, [api]);
+  }, [api, demo, restored, dispatch, attempt]);
   const active = state.chats.find((c) => c.id === state.activeId);
   const createChat = async (raw: string) => {
     const recipient = normalizeRecipient(raw);
@@ -34,7 +87,8 @@ export function useChat(api: ChatApi, demo: boolean) {
     if (!sessionAbort.current.signal.aborted) dispatch({ type: 'addChat', id, recipient });
   };
   const send = async (text: string) => {
-    if (!active || sendingRef.current || !text.trim() || text.length > 4096) return false;
+    if (!active || !ready || checking || sendingRef.current || !text.trim() || text.length > 4096)
+      return false;
     const controller = sessionAbort.current;
     const chatId = active.id;
     const localId = crypto.randomUUID();
@@ -75,8 +129,19 @@ export function useChat(api: ChatApi, demo: boolean) {
     createChat,
     send,
     sending,
+    checking,
+    ready,
+    reconnect: () => {
+      setChecking(true);
+      setPollError(null);
+      setAttempt((value) => value + 1);
+    },
+    notices,
+    storageError,
     pollError,
     sendError,
+    draft: active ? (state.drafts?.[active.id] ?? '') : '',
+    setDraft: (chatId: string, text: string) => dispatch({ type: 'draft', chatId, text }),
     select: (id: string | null) => dispatch({ type: 'select', id }),
   };
 }

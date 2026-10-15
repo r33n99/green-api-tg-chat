@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { ArrowLeft, Check, CheckCheck, Clock3, CircleAlert, Send } from 'lucide-react';
 import type { Chat, Delivery } from '../types';
 import './Conversation.scss';
@@ -53,15 +53,24 @@ export function Conversation({
   error,
   onSend,
   onBack,
+  draft,
+  onDraftChange,
 }: {
   chat: Chat;
   sending: boolean;
   error: string | null;
   onSend: (text: string) => Promise<boolean>;
   onBack: () => void;
+  draft: string;
+  onDraftChange: (text: string) => void;
 }) {
-  const [draft, setDraft] = useState('');
   const bottom = useRef<HTMLDivElement>(null);
+  const input = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (!input.current) return;
+    input.current.style.height = 'auto';
+    input.current.style.height = `${Math.min(input.current.scrollHeight, 144)}px`;
+  }, [draft]);
   useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [chat.messages.length]);
@@ -69,7 +78,7 @@ export function Conversation({
     e?.preventDefault();
     if (sending || !draft.trim() || draft.length > 4096) return;
     const text = draft;
-    if (await onSend(text)) setDraft((current) => (current === text ? '' : current));
+    if (await onSend(text)) onDraftChange('');
   }
   let previousDay = '';
   return (
@@ -79,7 +88,7 @@ export function Conversation({
           <ArrowLeft size={22} />
         </button>
         <Avatar title={chat.title} />
-        <div>
+        <div className="conversation-person">
           <h2>{chat.title}</h2>
           <p>{chat.phone && !chat.title.startsWith('+') ? `+${chat.phone} · ` : ''}Telegram</p>
         </div>
@@ -136,9 +145,10 @@ export function Conversation({
         )}
         <form className="composer" onSubmit={submit}>
           <textarea
+            ref={input}
             aria-label="Сообщение"
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={(e) => onDraftChange(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault();
@@ -146,7 +156,7 @@ export function Conversation({
               }
             }}
             placeholder="Написать сообщение…"
-            rows={2}
+            rows={1}
             maxLength={4096}
             disabled={sending}
           />

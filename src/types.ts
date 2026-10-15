@@ -46,6 +46,7 @@ export interface Notification {
   body: NotificationBody;
 }
 export interface ChatApi {
+  readonly credentials?: Credentials;
   connect(signal?: AbortSignal): Promise<string[]>;
   resolveRecipient(recipient: string, signal?: AbortSignal): Promise<string>;
   send(chatId: string, message: string, signal?: AbortSignal): Promise<string>;

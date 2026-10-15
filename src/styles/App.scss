@@ -9,7 +9,7 @@
 }
 .workspace-header {
   min-height: 76px;
-  padding: 12px 28px;
+  padding: 12px t.$gutter;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -65,12 +65,14 @@
   display: flex;
   flex-direction: column;
   background: #1d1d1d;
+  min-width: 0;
 }
 .sidebar-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 23px 21px 18px;
+  min-height: 76px;
+  padding: 18px t.$gutter 14px;
   h1 {
     font-size: 19px;
     font-weight: 600;
@@ -89,7 +91,7 @@
   }
 }
 .search-field {
-  margin: 0 18px 21px;
+  margin: 0 t.$gutter 16px;
   position: relative;
   color: #899a7a;
   input {
@@ -118,7 +120,7 @@
   gap: 11px;
   width: 100%;
   text-align: left;
-  padding: 17px 20px;
+  padding: 16px 21px;
   border: 0;
   border-left: 3px solid transparent;
   border-bottom: 1px solid #2c3624;
@@ -200,17 +202,21 @@
   padding: 0 4px;
 }
 .sidebar-empty {
-  padding: 40px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px t.$gutter;
   text-align: center;
   color: #a4b297;
   font-size: 12px;
   button {
-    margin: 17px auto 0;
+    min-height: 32px;
     font-size: 12px;
   }
 }
 .sidebar-footer {
-  padding: 21px;
+  padding: 18px t.$gutter;
   border-top: 1px solid t.$line;
   display: flex;
   align-items: center;
@@ -279,8 +285,12 @@
     font-size: 10px;
   }
   .connection-state {
-    max-width: 82px;
-    font-size: 9px;
+    max-width: 106px;
+    font-size: 10px;
+    line-height: 1.4;
+    i {
+      flex-shrink: 0;
+    }
   }
   .chat-layout {
     display: block;
@@ -304,15 +314,20 @@
     }
   }
   .sidebar-title {
-    padding-top: 23px;
-    padding-bottom: 20px;
+    min-height: 72px;
+    padding: 16px t.$mobile-gutter;
+  }
+  .search-field {
+    margin: 0 t.$mobile-gutter 16px;
+  }
+  .sidebar-footer {
+    padding: 16px t.$mobile-gutter;
   }
   .chat-item {
-    padding-top: 19px;
-    padding-bottom: 19px;
+    padding: 16px 13px;
   }
 }
-@media (max-width: 380px) {
+@media (max-width: 480px) {
   .workspace-header .brand-channel {
     display: none;
   }

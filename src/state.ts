@@ -2,8 +2,10 @@ import type { Chat, Delivery, Message, NotificationBody } from './types';
 export interface ChatState {
   chats: Chat[];
   activeId: string | null;
+  drafts?: Record<string, string>;
 }
 export type Action =
+  | { type: 'draft'; chatId: string; text: string }
   | { type: 'select'; id: string | null }
   | { type: 'addChat'; id: string; recipient: string }
   | { type: 'message'; message: Message }
@@ -12,6 +14,8 @@ export type Action =
   | { type: 'event'; body: NotificationBody };
 const statuses: Delivery[] = ['sending', 'queued', 'sent', 'delivered', 'read'];
 export function chatReducer(state: ChatState, action: Action): ChatState {
+  if (action.type === 'draft')
+    return { ...state, drafts: { ...state.drafts, [action.chatId]: action.text } };
   if (action.type === 'select')
     return {
       ...state,
@@ -22,6 +26,7 @@ export function chatReducer(state: ChatState, action: Action): ChatState {
     const found = state.chats.find((c) => c.id === action.id);
     const phone = action.recipient.startsWith('@') ? undefined : action.recipient;
     return {
+      ...state,
       activeId: action.id,
       chats: found
         ? state.chats.map((c) =>

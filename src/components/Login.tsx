@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { GreenApi, validateCredentials } from '../api/greenApi';
 import type { ChatApi } from '../types';
+import { readConnection, saveConnection } from '../storage';
 import './Login.scss';
 
 export function Login({
@@ -19,9 +20,14 @@ export function Login({
   onConnect: (api: ChatApi, notices: string[]) => void;
   onDemo: () => void;
 }) {
-  const [id, setId] = useState('');
-  const [token, setToken] = useState('');
-  const [url, setUrl] = useState('https://4100.api.green-api.com');
+  const [saved] = useState(readConnection);
+  const [id, setId] = useState(saved.idInstance);
+  const [token, setToken] = useState(saved.apiTokenInstance);
+  const [url, setUrl] = useState(saved.apiUrl);
+  const [storageError, setStorageError] = useState(false);
+  useEffect(() => {
+    setStorageError(!saveConnection({ idInstance: id, apiTokenInstance: token, apiUrl: url }));
+  }, [id, token, url]);
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -112,9 +118,9 @@ export function Login({
               aria-describedby="api-help"
             />
             <small id="api-help">Скопируйте адрес сервера вашего инстанса.</small>
-            {error && (
+            {(error || storageError) && (
               <div className="error-notice" role="alert">
-                {error}
+                {error || 'Браузер не позволяет сохранить данные после перезагрузки.'}
               </div>
             )}
             <button className="primary-button connect-button" disabled={busy} type="submit">
@@ -136,7 +142,7 @@ export function Login({
           </div>
         </section>
         <p className="login-privacy">
-          <LockKeyhole size={14} /> Ключи хранятся только в памяти этой вкладки.
+          <LockKeyhole size={14} /> Данные сохраняются в этой вкладке. Выход очищает их.
         </p>
       </div>
       <footer className="login-footer">

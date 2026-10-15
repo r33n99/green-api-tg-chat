@@ -6,8 +6,9 @@
   min-height: 0;
 }
 .conversation-header {
-  min-height: 77px;
-  padding: 16px 30px;
+  min-height: 76px;
+  padding: 16px t.$gutter;
+  flex-shrink: 0;
   display: flex;
   gap: 12px;
   align-items: center;
@@ -16,6 +17,7 @@
   h2 {
     font-weight: 600;
     font-size: 14px;
+    overflow-wrap: anywhere;
   }
   p {
     color: #a0b68d;
@@ -27,13 +29,16 @@
     height: 38px;
   }
 }
+.conversation-person {
+  min-width: 0;
+}
 .mobile-back {
   display: none;
 }
 .message-area {
   flex: 1;
   overflow-y: auto;
-  padding: 25px 4vw 30px;
+  padding: 24px t.$gutter;
   min-height: 0;
   overscroll-behavior: contain;
 }
@@ -41,7 +46,7 @@
   text-align: center;
   color: #9cae88;
   font-size: 10px;
-  margin: 4px 0 30px;
+  margin: 0 0 24px;
 }
 .message-group {
   display: flow-root;
@@ -117,7 +122,9 @@
   }
 }
 .compose-area {
-  padding: 18px 30px 19px;
+  padding: 16px t.$gutter;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  flex-shrink: 0;
   background: #181b16;
   border-top: 1px solid #2b3922;
   .error-notice {
@@ -128,7 +135,7 @@
   background: #22271e;
   border: 1px solid #405431;
   border-radius: 6px;
-  padding: 7px 9px 7px 5px;
+  padding: 6px 8px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -139,9 +146,10 @@
     border: 0;
     resize: none;
     background: transparent;
-    padding: 10px 12px;
-    max-height: 130px;
-    min-height: 48px;
+    padding: 10px 8px;
+    max-height: 144px;
+    min-height: 44px;
+    min-width: 0;
     font-size: 14px;
     line-height: 1.6;
     &:focus {
@@ -184,16 +192,21 @@
     display: inline-flex;
   }
   .message-area {
-    padding: 23px 15px;
+    padding: 20px t.$mobile-gutter;
   }
   .message {
     max-width: 88%;
   }
   .compose-area {
-    padding: 12px 14px 15px;
+    padding: 12px t.$mobile-gutter;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
   .compose-caption {
     font-size: 9px;
+    justify-content: flex-end;
+    span:first-child {
+      display: none;
+    }
   }
   .message p {
     font-size: 14px;
